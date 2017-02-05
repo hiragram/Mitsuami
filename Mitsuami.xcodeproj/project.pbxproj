@@ -13,6 +13,9 @@
 		F606686B1E473C2F00325D7B /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F60668691E473C2F00325D7B /* Main.storyboard */; };
 		F60668761E473C2F00325D7B /* MitsuamiTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F60668751E473C2F00325D7B /* MitsuamiTests.swift */; };
 		F60668811E473C2F00325D7B /* MitsuamiUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F60668801E473C2F00325D7B /* MitsuamiUITests.swift */; };
+		F60668931E473FEA00325D7B /* RxBlocking.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F606688F1E473FEA00325D7B /* RxBlocking.framework */; };
+		F60668941E473FEA00325D7B /* RxCocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F60668901E473FEA00325D7B /* RxCocoa.framework */; };
+		F60668951E473FEA00325D7B /* RxSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F60668911E473FEA00325D7B /* RxSwift.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -45,6 +48,10 @@
 		F606687C1E473C2F00325D7B /* MitsuamiUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MitsuamiUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		F60668801E473C2F00325D7B /* MitsuamiUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MitsuamiUITests.swift; sourceTree = "<group>"; };
 		F60668821E473C2F00325D7B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		F606688F1E473FEA00325D7B /* RxBlocking.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = RxBlocking.framework; path = Carthage/Build/Mac/RxBlocking.framework; sourceTree = "<group>"; };
+		F60668901E473FEA00325D7B /* RxCocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = RxCocoa.framework; path = Carthage/Build/Mac/RxCocoa.framework; sourceTree = "<group>"; };
+		F60668911E473FEA00325D7B /* RxSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = RxSwift.framework; path = Carthage/Build/Mac/RxSwift.framework; sourceTree = "<group>"; };
+		F60668921E473FEA00325D7B /* RxTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = RxTest.framework; path = Carthage/Build/Mac/RxTest.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -52,6 +59,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F60668941E473FEA00325D7B /* RxCocoa.framework in Frameworks */,
+				F60668931E473FEA00325D7B /* RxBlocking.framework in Frameworks */,
+				F60668951E473FEA00325D7B /* RxSwift.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -79,6 +89,7 @@
 				F60668741E473C2F00325D7B /* MitsuamiTests */,
 				F606687F1E473C2F00325D7B /* MitsuamiUITests */,
 				F60668611E473C2F00325D7B /* Products */,
+				F606688E1E473FD800325D7B /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -122,6 +133,17 @@
 			path = MitsuamiUITests;
 			sourceTree = "<group>";
 		};
+		F606688E1E473FD800325D7B /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				F606688F1E473FEA00325D7B /* RxBlocking.framework */,
+				F60668901E473FEA00325D7B /* RxCocoa.framework */,
+				F60668911E473FEA00325D7B /* RxSwift.framework */,
+				F60668921E473FEA00325D7B /* RxTest.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -132,6 +154,7 @@
 				F606685C1E473C2E00325D7B /* Sources */,
 				F606685D1E473C2E00325D7B /* Frameworks */,
 				F606685E1E473C2E00325D7B /* Resources */,
+				F60668971E473FF200325D7B /* Carthage */,
 			);
 			buildRules = (
 			);
@@ -252,6 +275,26 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		F60668971E473FF200325D7B /* Carthage */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/Carthage/Build/Mac/RxSwift.framework",
+				"$(SRCROOT)/Carthage/Build/Mac/RxCocoa.framework",
+				"$(SRCROOT)/Carthage/Build/Mac/RxBlocking.framework",
+			);
+			name = Carthage;
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "carthage copy-frameworks\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		F606685C1E473C2E00325D7B /* Sources */ = {
@@ -402,6 +445,10 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = Q3N95Y73WF;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/Mac",
+				);
 				INFOPLIST_FILE = Mitsuami/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = me.yura.Mitsuami;
@@ -416,6 +463,10 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = Q3N95Y73WF;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/Mac",
+				);
 				INFOPLIST_FILE = Mitsuami/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = me.yura.Mitsuami;
@@ -505,6 +556,7 @@
 				F60668871E473C2F00325D7B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		F60668881E473C2F00325D7B /* Build configuration list for PBXNativeTarget "MitsuamiTests" */ = {
 			isa = XCConfigurationList;
@@ -513,6 +565,7 @@
 				F606688A1E473C2F00325D7B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		F606688B1E473C2F00325D7B /* Build configuration list for PBXNativeTarget "MitsuamiUITests" */ = {
 			isa = XCConfigurationList;
@@ -521,6 +574,7 @@
 				F606688D1E473C2F00325D7B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

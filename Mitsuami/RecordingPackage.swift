@@ -68,7 +68,7 @@ struct RecordingPackage {
 }
 
 extension RecordingPackage {
-  static func mixDown(packages: [RecordingPackage]) {
+  static func mixDown(packages: [RecordingPackage], exportTo path: String) {
     let composition = AVMutableComposition.init()
 
     let timeOrderedPackages = packages.sorted { (a, b) -> Bool in
@@ -117,16 +117,18 @@ extension RecordingPackage {
       }
 
       return Disposables.create()
-    }.buffer(timeSpan: 100, count: packages.count, scheduler: MainScheduler.instance)
-    .subscribe(onNext: { (_) in
-      print("exporting...")
-      let exportSession = AVAssetExportSession.init(asset: composition, presetName: AVAssetExportPresetAppleM4A)!
-      exportSession.outputURL = URL.init(fileURLWithPath: "/Users/yuya_hirayama/Desktop/result.m4a")
-      exportSession.outputFileType = AVFileTypeAppleM4A
+    }
+      .buffer(timeSpan: 100, count: packages.count, scheduler: MainScheduler.instance)
+      .take(1)
+      .subscribe(onNext: { (_) in
+        print("exporting...")
+        let exportSession = AVAssetExportSession.init(asset: composition, presetName: AVAssetExportPresetAppleM4A)!
+        exportSession.outputURL = URL.init(fileURLWithPath: path)
+        exportSession.outputFileType = AVFileTypeAppleM4A
 
-      exportSession.exportAsynchronously(completionHandler: {
-        print(exportSession.status.hashValue)
-      })
-    }).addDisposableTo(bag)
+        exportSession.exportAsynchronously(completionHandler: {
+          print(exportSession.status.hashValue)
+        })
+      }).addDisposableTo(bag)
   }
 }

@@ -22,14 +22,9 @@ class ViewController: NSViewController {
 
   @IBOutlet private weak var startButton: NSButton! {
     didSet {
-      startButton.rx.tap.subscribe(onNext: { (_) in
-        let a = try! RecordingPackage.init(packagePath: URL.init(string: "/Users/yuya_hirayama/Desktop/Man.rec/")!)
-        let b = try! RecordingPackage.init(packagePath: URL.init(string: "/Users/yuya_hirayama/Desktop/Woman.rec/")!)
-        RecordingPackage.mixDown(packages: [a, b])
+      startButton.rx.tap.subscribe(onNext: { [unowned self] (_) in
+        self.recorder.start()
       }).addDisposableTo(bag)
-//      startButton.rx.tap.subscribe(onNext: { [unowned self] (_) in
-//        self.recorder.start()
-//      }).addDisposableTo(bag)
       recorder.isRecording.map { !$0 }.bindTo(startButton.rx.isEnabled).addDisposableTo(bag)
     }
   }
@@ -43,6 +38,37 @@ class ViewController: NSViewController {
     }
   }
 
+  @IBOutlet private weak var exportButton: NSButton! {
+    didSet {
+      exportButton.rx.tap.subscribe(onNext: { [unowned self] (_) in
+        let a = try! RecordingPackage.init(packagePath: URL.init(string: self.pathForSound1.value)!)
+        let b = try! RecordingPackage.init(packagePath: URL.init(string: self.pathForSound2.value)!)
+        RecordingPackage.mixDown(packages: [a, b], exportTo: self.exportPath.value)
+      }).addDisposableTo(bag)
+    }
+  }
+
+  @IBOutlet private weak var pathForSound1TextField: NSTextField! {
+    didSet {
+      pathForSound1TextField.rx.text.map { $0 ?? "" }.bindTo(pathForSound1).addDisposableTo(bag)
+    }
+  }
+
+  @IBOutlet private weak var pathForSound2TextField: NSTextField! {
+    didSet {
+      pathForSound2TextField.rx.text.map { $0 ?? "" }.bindTo(pathForSound2).addDisposableTo(bag)
+    }
+  }
+
+  @IBOutlet private weak var exportPathTextField: NSTextField! {
+    didSet {
+      exportPathTextField.rx.text.map { $0 ?? "" }.bindTo(exportPath).addDisposableTo(bag)
+    }
+  }
+
+  let pathForSound1 = Variable<String>.init("")
+  let pathForSound2 = Variable<String>.init("")
+  let exportPath = Variable<String>.init("")
 
   var recorder = Recorder.init()
 

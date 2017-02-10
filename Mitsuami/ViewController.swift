@@ -53,12 +53,39 @@ class Recorder {
   var audioFile: AudioFileID! = nil
   var currentPacketCount: Int64 = 0
   var isRunning: Bool = false
+  var fileType = kAudioFileAIFFType
+  var bufferByteSize: UInt32 = 0
 
   private let level = Observable<Int>.interval(1, scheduler: MainScheduler.instance)
 
   func start() {
 
-    // (UnsafeMutableRawPointer?, AudioQueueRef, AudioQueueBufferRef, UnsafePointer<AudioTimeStamp>, UInt32, UnsafePointer<AudioStreamPacketDescription>?)
+
+    let audioFileURL = URL.init(fileURLWithPath: "/Users/yuya_hirayama/Desktop/sound.aiff")
+
+    var audioFile: AudioFileID?
+    var creationError = noErr
+    creationError = AudioFileCreateWithURL(
+      audioFileURL as CFURL,
+      fileType,
+      &dataFormat,
+      AudioFileFlags.eraseFile,
+      &audioFile
+    )
+    if creationError == noErr {
+      self.audioFile = audioFile
+    } else {
+      print(creationError)
+      return
+    }
+
+
+    deriveBufferSize(
+      audioQueue: self.audioQueue,
+      description: dataFormat,
+      seconds: 0.5,
+      outBufferSize: &bufferByteSize
+    )
 
     var audioQueue: AudioQueueRef?
     error = AudioQueueNewInput(
@@ -105,6 +132,8 @@ class Recorder {
 
     if error == noErr {
       self.audioQueue = audioQueue
+    } else {
+      print(error)
     }
 
     AudioQueueStart(self.audioQueue, nil)

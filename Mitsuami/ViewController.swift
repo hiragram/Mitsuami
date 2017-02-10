@@ -55,10 +55,20 @@ class Recorder {
   var isRunning: Bool = false
   var fileType = kAudioFileAIFFType
   var bufferByteSize: UInt32 = 0
+  let numberOfBuffers = 3
+  var buffers: [AudioQueueBufferRef?]
 
   private let level = Observable<Int>.interval(1, scheduler: MainScheduler.instance)
 
+  init() {
+     buffers = (1...numberOfBuffers).map { _ in return nil }
+  }
+
+  var aaa: String?
+
   func start() {
+
+    aaa = "わいわい"
 
 
     let audioFileURL = URL.init(fileURLWithPath: "/Users/yuya_hirayama/Desktop/sound.aiff")
@@ -79,48 +89,48 @@ class Recorder {
       return
     }
 
-
-    deriveBufferSize(
-      audioQueue: self.audioQueue,
-      description: dataFormat,
-      seconds: 0.5,
-      outBufferSize: &bufferByteSize
-    )
-
     var audioQueue: AudioQueueRef?
     error = AudioQueueNewInput(
       &dataFormat,
-      { (aqData, inputAudioQueue, inputBuffer, inputTimeStamp, inputPacketNumber, inputPacketDescription) in
-        print("ほげ")
-        let recorderPointer = OpaquePointer.init(aqData)
-        let pointer = UnsafeMutablePointer<Recorder>.init(recorderPointer)
+      { (rawPointer, inputAudioQueue, inputBuffer, inputTimeStamp, inputPacketNumber, inputPacketDescription) in
+//        let recorderPointer = OpaquePointer.init(aqData)
+//        let pointer = UnsafeMutablePointer<Recorder>.init(recorderPointer)
+
+        let pointer = UnsafeMutablePointer<Recorder>.init(OpaquePointer.init(rawPointer))
         guard let recorder = pointer?.pointee else {
           print("あああああ")
           return
         }
 
-        var _inputPacketNumber: UInt32 = inputPacketNumber
-        if inputPacketNumber == 0 && recorder.dataFormat.mBytesPerPacket != 0 {
-          _inputPacketNumber = inputBuffer.pointee.mAudioDataByteSize / recorder.dataFormat.mBytesPerPacket
-        }
+        print(rawPointer)
+        print(pointer)
+        print(recorder)
+        pointer?.pointee.aaa
 
-        if AudioFileWritePackets(
-          recorder.audioFile,
-          false,
-          inputBuffer.pointee.mAudioDataByteSize,
-          inputPacketDescription,
-          recorder.currentPacketCount,
-          &_inputPacketNumber,
-          inputBuffer.pointee.mAudioData
-          ) == noErr {
-          recorder.currentPacketCount += Int64(_inputPacketNumber)
-        }
-
-        if recorder.isRunning == false {
-          return
-        }
-
-        AudioQueueEnqueueBuffer(recorder.audioQueue, inputBuffer, 0, nil)
+//        var _inputPacketNumber: UInt32 = inputPacketNumber
+//        if inputPacketNumber == 0 && recorder.dataFormat.mBytesPerPacket != 0 {
+//          _inputPacketNumber = inputBuffer.pointee.mAudioDataByteSize / recorder.dataFormat.mBytesPerPacket
+//        }
+//
+//        print(recorder.aaa)
+//
+//        if AudioFileWritePackets(
+//          recorder.audioFile,
+//          false,
+//          inputBuffer.pointee.mAudioDataByteSize,
+//          inputPacketDescription,
+//          recorder.currentPacketCount,
+//          &_inputPacketNumber,
+//          inputBuffer.pointee.mAudioData
+//          ) == noErr {
+//          recorder.currentPacketCount += Int64(_inputPacketNumber)
+//        }
+//
+//        if recorder.isRunning == false {
+//          return
+//        }
+//
+//        AudioQueueEnqueueBuffer(recorder.audioQueue, inputBuffer, 0, nil)
 
     },
       Unmanaged.passUnretained(self).toOpaque(),
@@ -136,7 +146,25 @@ class Recorder {
       print(error)
     }
 
-    AudioQueueStart(self.audioQueue, nil)
+    deriveBufferSize(
+      audioQueue: self.audioQueue,
+      description: dataFormat,
+      seconds: 0.5,
+      outBufferSize: &bufferByteSize
+    )
+
+    for i in 0 ..< numberOfBuffers {
+      AudioQueueAllocateBuffer(self.audioQueue, bufferByteSize, &buffers[i])
+      AudioQueueEnqueueBuffer(self.audioQueue, buffers[i]!, 0, nil)
+    }
+
+    var startError = noErr
+    startError = AudioQueueStart(self.audioQueue, nil)
+    if startError != noErr {
+      print(startError)
+      return
+    }
+
   }
 
 

@@ -36,7 +36,7 @@ class ViewController: NSViewController {
 
 class Recorder {
 
-  class State: CustomStringConvertible {
+  class State {
     var dataFormat = AudioStreamBasicDescription.init(
       mSampleRate: 44100.0,
       mFormatID: kAudioFormatLinearPCM,
@@ -62,30 +62,13 @@ class Recorder {
     init() {
       buffers = (1...numberOfBuffers).map { _ in return nil }
     }
-
-    var description: String {
-      return "\(audioFile)"
-    }
-
-    deinit {
-      print("あああああああああああああああああああ")
-    }
   }
 
   var state = State.init()
 
-  private let level = Observable<Int>.interval(1, scheduler: MainScheduler.instance)
-
-  init() {
-  }
-
   var aaa: String?
 
   func start() {
-
-    aaa = "わいわい"
-
-
     let audioFileURL = URL.init(fileURLWithPath: "/Users/yuya_hirayama/Desktop/sound.aiff")
 
     var audioFile: AudioFileID?
@@ -104,22 +87,15 @@ class Recorder {
       return
     }
 
-//    let rawStatePointer = Unmanaged.passUnretained(self).toOpaque()
-
     var audioQueue: AudioQueueRef?
     state.error = AudioQueueNewInput(
       &state.dataFormat,
       { (rawPointer, inputAudioQueue, inputBuffer, inputTimeStamp, inputPacketNumber, inputPacketDescription) in
         let pointer = UnsafeMutablePointer<Recorder.State>.init(OpaquePointer.init(rawPointer))
         guard let state = pointer?.pointee else {
-          print("あああああ")
           return
         }
 
-        print(rawPointer)
-        print(pointer)
-        print(state)
-        print("aaaaaaa")
         var _inputPacketNumber: UInt32 = inputPacketNumber
         if inputPacketNumber == 0 && state.dataFormat.mBytesPerPacket != 0 {
           _inputPacketNumber = inputBuffer.pointee.mAudioDataByteSize / state.dataFormat.mBytesPerPacket

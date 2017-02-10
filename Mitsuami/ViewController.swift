@@ -22,9 +22,14 @@ class ViewController: NSViewController {
 
   @IBOutlet private weak var startButton: NSButton! {
     didSet {
-      startButton.rx.tap.subscribe(onNext: { [unowned self] (_) in
-        self.recorder.start()
+      startButton.rx.tap.subscribe(onNext: { (_) in
+        let a = try! RecordingPackage.init(packagePath: URL.init(string: "/Users/yuya_hirayama/Desktop/Man.rec/")!)
+        let b = try! RecordingPackage.init(packagePath: URL.init(string: "/Users/yuya_hirayama/Desktop/Woman.rec/")!)
+        RecordingPackage.mixDown(packages: [a, b])
       }).addDisposableTo(bag)
+//      startButton.rx.tap.subscribe(onNext: { [unowned self] (_) in
+//        self.recorder.start()
+//      }).addDisposableTo(bag)
       recorder.isRecording.map { !$0 }.bindTo(startButton.rx.isEnabled).addDisposableTo(bag)
     }
   }

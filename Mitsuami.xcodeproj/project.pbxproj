@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8A5008F71E4DBEE10041B247 /* Recorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A5008F61E4DBEE10041B247 /* Recorder.swift */; };
 		F60668641E473C2F00325D7B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F60668631E473C2F00325D7B /* AppDelegate.swift */; };
 		F60668661E473C2F00325D7B /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F60668651E473C2F00325D7B /* ViewController.swift */; };
 		F60668681E473C2F00325D7B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F60668671E473C2F00325D7B /* Assets.xcassets */; };
@@ -36,6 +37,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		8A5008F61E4DBEE10041B247 /* Recorder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Recorder.swift; sourceTree = "<group>"; };
 		F60668601E473C2F00325D7B /* Mitsuami.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Mitsuami.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F60668631E473C2F00325D7B /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		F60668651E473C2F00325D7B /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -108,6 +110,7 @@
 			children = (
 				F60668631E473C2F00325D7B /* AppDelegate.swift */,
 				F60668651E473C2F00325D7B /* ViewController.swift */,
+				8A5008F61E4DBEE10041B247 /* Recorder.swift */,
 				F60668671E473C2F00325D7B /* Assets.xcassets */,
 				F60668691E473C2F00325D7B /* Main.storyboard */,
 				F606686C1E473C2F00325D7B /* Info.plist */,
@@ -301,6 +304,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8A5008F71E4DBEE10041B247 /* Recorder.swift in Sources */,
 				F60668661E473C2F00325D7B /* ViewController.swift in Sources */,
 				F60668641E473C2F00325D7B /* AppDelegate.swift in Sources */,
 			);

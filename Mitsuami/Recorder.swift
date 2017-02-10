@@ -13,7 +13,16 @@ import AudioToolbox
 
 class Recorder {
 
-  class State {
+  // private variables
+  private let _savePath = Variable<String>.init("")
+
+  // interfaces
+  var savePath: AnyObserver<String>! = nil
+  var isRecording: Observable<Bool> {
+    return state.isRunning.asObservable()
+  }
+
+  private class State {
     var dataFormat = AudioStreamBasicDescription.init(
       mSampleRate: 44100.0,
       mFormatID: kAudioFormatLinearPCM,
@@ -30,7 +39,7 @@ class Recorder {
     var error = noErr
     var audioFile: AudioFileID! = nil
     var currentPacketCount: Int64 = 0
-    var isRunning: Bool = false
+    let isRunning = Variable<Bool>.init(false)
     var fileType = kAudioFileAIFFType
     var bufferByteSize: UInt32 = 0
     let numberOfBuffers = 3
@@ -41,12 +50,21 @@ class Recorder {
     }
   }
 
-  var state = State.init()
+  private var state = State.init()
 
-  var aaa: String?
+  init() {
+    savePath = AnyObserver<String>.init { [unowned self] (event) in
+      switch event {
+      case .next(let path):
+        self._savePath.value = path
+      default:
+        break
+      }
+    }
+  }
 
   func start() {
-    let audioFileURL = URL.init(fileURLWithPath: "/Users/yuya_hirayama/Desktop/sound.aiff")
+    let audioFileURL = URL.init(fileURLWithPath: _savePath.value)
 
     var audioFile: AudioFileID?
     var creationError = noErr
@@ -90,7 +108,7 @@ class Recorder {
           state.currentPacketCount += Int64(_inputPacketNumber)
         }
 
-        if state.isRunning == false {
+        if state.isRunning.value == false {
           return
         }
 
@@ -127,22 +145,21 @@ class Recorder {
     }
 
     var startError = noErr
-    state.isRunning = true
+    state.isRunning.value = true
     startError = AudioQueueStart(state.audioQueue, nil)
     if startError != noErr {
       print(startError)
       return
     }
+  }
 
-    DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + .seconds(10)) {
-      AudioQueueStop(self.state.audioQueue, true)
-      self.state.isRunning = false
+  func stop() {
+    AudioQueueStop(state.audioQueue, true)
+    state.isRunning.value = false
 
-      AudioQueueDispose(self.state.audioQueue, true)
-      AudioFileClose(self.state.audioFile)
-      print("録音を終了しました")
-    }
-
+    AudioQueueDispose(state.audioQueue, true)
+    AudioFileClose(state.audioFile)
+    print("録音を終了しました")
   }
 
 

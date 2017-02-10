@@ -52,6 +52,8 @@ class Recorder {
 
   private var state = State.init()
 
+  private var package: RecordingPackage? = nil
+
   init() {
     savePath = AnyObserver<String>.init { [unowned self] (event) in
       switch event {
@@ -64,7 +66,9 @@ class Recorder {
   }
 
   func start() {
-    let audioFileURL = URL.init(fileURLWithPath: _savePath.value)
+    let package = preparePackage()
+    self.package = package
+    let audioFileURL = URL.init(fileURLWithPath: package.soundFileRecordingPath)
 
     var audioFile: AudioFileID?
     var creationError = noErr
@@ -78,7 +82,7 @@ class Recorder {
     if creationError == noErr {
       state.audioFile = audioFile
     } else {
-      print(creationError)
+      print("Error \(creationError): could not create file to \(audioFileURL.absoluteString)")
       return
     }
 
@@ -160,6 +164,7 @@ class Recorder {
     AudioQueueDispose(state.audioQueue, true)
     AudioFileClose(state.audioFile)
     print("録音を終了しました")
+    package?.export()
   }
 
 
@@ -179,5 +184,16 @@ class Recorder {
 
     let numBytesForTime = Double(description.mSampleRate) * Double(maxPacketSize) * Double(seconds)
     outBufferSize.pointee = UInt32(numBytesForTime < Double(maxBufferSize) ? UInt32(numBytesForTime) : UInt32(maxBufferSize))
+  }
+
+  private func preparePackage() -> RecordingPackage {
+    let timestamp = Date.init().timeIntervalSince1970
+    let directory = _savePath.value + "/\(Int(timestamp)).rec/"
+    try! FileManager.default.createDirectory(at: URL.init(fileURLWithPath: directory), withIntermediateDirectories: true, attributes: nil)
+    let temporaryDirectory = "/tmp/rec/\(timestamp)/"
+    try! FileManager.default.createDirectory(at: URL.init(fileURLWithPath: temporaryDirectory), withIntermediateDirectories: true, attributes: nil)
+    let package = RecordingPackage.init(timestamp: timestamp, path: directory, temporaryPath: temporaryDirectory)
+
+    return package
   }
 }

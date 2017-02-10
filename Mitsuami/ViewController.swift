@@ -36,32 +36,47 @@ class ViewController: NSViewController {
 
 class Recorder {
 
-  var dataFormat = AudioStreamBasicDescription.init(
-    mSampleRate: 44100.0,
-    mFormatID: kAudioFormatLinearPCM,
-    mFormatFlags: AudioFormatFlags.init(kLinearPCMFormatFlagIsBigEndian | kLinearPCMFormatFlagIsSignedInteger | kLinearPCMFormatFlagIsPacked),
-    mBytesPerPacket: 2,
-    mFramesPerPacket: 1,
-    mBytesPerFrame: 2,
-    mChannelsPerFrame: 1,
-    mBitsPerChannel: 16,
-    mReserved: 0
-  )
+  class State: CustomStringConvertible {
+    var dataFormat = AudioStreamBasicDescription.init(
+      mSampleRate: 44100.0,
+      mFormatID: kAudioFormatLinearPCM,
+      mFormatFlags: AudioFormatFlags.init(kLinearPCMFormatFlagIsBigEndian | kLinearPCMFormatFlagIsSignedInteger | kLinearPCMFormatFlagIsPacked),
+      mBytesPerPacket: 2,
+      mFramesPerPacket: 1,
+      mBytesPerFrame: 2,
+      mChannelsPerFrame: 1,
+      mBitsPerChannel: 16,
+      mReserved: 0
+    )
 
-  var audioQueue: AudioQueueRef!
-  var error = noErr
-  var audioFile: AudioFileID! = nil
-  var currentPacketCount: Int64 = 0
-  var isRunning: Bool = false
-  var fileType = kAudioFileAIFFType
-  var bufferByteSize: UInt32 = 0
-  let numberOfBuffers = 3
-  var buffers: [AudioQueueBufferRef?]
+    var audioQueue: AudioQueueRef!
+    var error = noErr
+    var audioFile: AudioFileID! = nil
+    var currentPacketCount: Int64 = 0
+    var isRunning: Bool = false
+    var fileType = kAudioFileAIFFType
+    var bufferByteSize: UInt32 = 0
+    let numberOfBuffers = 3
+    var buffers: [AudioQueueBufferRef?]
+
+    init() {
+      buffers = (1...numberOfBuffers).map { _ in return nil }
+    }
+
+    var description: String {
+      return "\(audioFile)"
+    }
+
+    deinit {
+      print("あああああああああああああああああああ")
+    }
+  }
+
+  var state = State.init()
 
   private let level = Observable<Int>.interval(1, scheduler: MainScheduler.instance)
 
   init() {
-     buffers = (1...numberOfBuffers).map { _ in return nil }
   }
 
   var aaa: String?
@@ -77,92 +92,102 @@ class Recorder {
     var creationError = noErr
     creationError = AudioFileCreateWithURL(
       audioFileURL as CFURL,
-      fileType,
-      &dataFormat,
+      state.fileType,
+      &state.dataFormat,
       AudioFileFlags.eraseFile,
       &audioFile
     )
     if creationError == noErr {
-      self.audioFile = audioFile
+      state.audioFile = audioFile
     } else {
       print(creationError)
       return
     }
 
-    var audioQueue: AudioQueueRef?
-    error = AudioQueueNewInput(
-      &dataFormat,
-      { (rawPointer, inputAudioQueue, inputBuffer, inputTimeStamp, inputPacketNumber, inputPacketDescription) in
-//        let recorderPointer = OpaquePointer.init(aqData)
-//        let pointer = UnsafeMutablePointer<Recorder>.init(recorderPointer)
+//    let rawStatePointer = Unmanaged.passUnretained(self).toOpaque()
 
-        let pointer = UnsafeMutablePointer<Recorder>.init(OpaquePointer.init(rawPointer))
-        guard let recorder = pointer?.pointee else {
+    var audioQueue: AudioQueueRef?
+    state.error = AudioQueueNewInput(
+      &state.dataFormat,
+      { (rawPointer, inputAudioQueue, inputBuffer, inputTimeStamp, inputPacketNumber, inputPacketDescription) in
+        let pointer = UnsafeMutablePointer<Recorder.State>.init(OpaquePointer.init(rawPointer))
+        guard let state = pointer?.pointee else {
           print("あああああ")
           return
         }
 
         print(rawPointer)
         print(pointer)
-        print(recorder)
-        pointer?.pointee.aaa
+        print(state)
+        print("aaaaaaa")
+        var _inputPacketNumber: UInt32 = inputPacketNumber
+        if inputPacketNumber == 0 && state.dataFormat.mBytesPerPacket != 0 {
+          _inputPacketNumber = inputBuffer.pointee.mAudioDataByteSize / state.dataFormat.mBytesPerPacket
+        }
 
-//        var _inputPacketNumber: UInt32 = inputPacketNumber
-//        if inputPacketNumber == 0 && recorder.dataFormat.mBytesPerPacket != 0 {
-//          _inputPacketNumber = inputBuffer.pointee.mAudioDataByteSize / recorder.dataFormat.mBytesPerPacket
-//        }
-//
-//        print(recorder.aaa)
-//
-//        if AudioFileWritePackets(
-//          recorder.audioFile,
-//          false,
-//          inputBuffer.pointee.mAudioDataByteSize,
-//          inputPacketDescription,
-//          recorder.currentPacketCount,
-//          &_inputPacketNumber,
-//          inputBuffer.pointee.mAudioData
-//          ) == noErr {
-//          recorder.currentPacketCount += Int64(_inputPacketNumber)
-//        }
-//
-//        if recorder.isRunning == false {
-//          return
-//        }
-//
-//        AudioQueueEnqueueBuffer(recorder.audioQueue, inputBuffer, 0, nil)
+        if AudioFileWritePackets(
+          state.audioFile,
+          false,
+          inputBuffer.pointee.mAudioDataByteSize,
+          inputPacketDescription,
+          state.currentPacketCount,
+          &_inputPacketNumber,
+          inputBuffer.pointee.mAudioData
+          ) == noErr {
+          state.currentPacketCount += Int64(_inputPacketNumber)
+        }
+
+        if state.isRunning == false {
+          return
+        }
+
+        var result = noErr
+        result = AudioQueueEnqueueBuffer(state.audioQueue, inputBuffer, 0, nil)
+        if result != noErr {
+          print(result)
+        }
 
     },
-      Unmanaged.passUnretained(self).toOpaque(),
+      &state,
       .none,
       .none,
       0,
       &audioQueue
     )
 
-    if error == noErr {
-      self.audioQueue = audioQueue
+    if state.error == noErr {
+      state.audioQueue = audioQueue
     } else {
-      print(error)
+      print(state.error)
     }
 
     deriveBufferSize(
-      audioQueue: self.audioQueue,
-      description: dataFormat,
+      audioQueue: state.audioQueue,
+      description: state.dataFormat,
       seconds: 0.5,
-      outBufferSize: &bufferByteSize
+      outBufferSize: &state.bufferByteSize
     )
 
-    for i in 0 ..< numberOfBuffers {
-      AudioQueueAllocateBuffer(self.audioQueue, bufferByteSize, &buffers[i])
-      AudioQueueEnqueueBuffer(self.audioQueue, buffers[i]!, 0, nil)
+    for i in 0 ..< state.numberOfBuffers {
+      AudioQueueAllocateBuffer(state.audioQueue, state.bufferByteSize, &state.buffers[i])
+      AudioQueueEnqueueBuffer(state.audioQueue, state.buffers[i]!, 0, nil)
     }
 
     var startError = noErr
-    startError = AudioQueueStart(self.audioQueue, nil)
+    state.isRunning = true
+    startError = AudioQueueStart(state.audioQueue, nil)
     if startError != noErr {
       print(startError)
       return
+    }
+
+    DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + .seconds(10)) { 
+      AudioQueueStop(self.state.audioQueue, true)
+      self.state.isRunning = false
+
+      AudioQueueDispose(self.state.audioQueue, true)
+      AudioFileClose(self.state.audioFile)
+      print("録音を終了しました")
     }
 
   }

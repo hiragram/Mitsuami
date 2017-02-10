@@ -110,7 +110,22 @@ class Recorder {
     AudioQueueStart(self.audioQueue, nil)
   }
 
-  private func AudioQueueCInputCallback(inUserData: UnsafeMutableRawPointer, inAQ: AudioQueueRef, inBuffer: AudioQueueBufferRef, inStartTime: UnsafePointer<AudioTimeStamp>, inNumberPacketDescription: UInt32, inPacketDescs: UnsafePointer<AudioStreamPacketDescription>) {
-    
+
+  func deriveBufferSize(audioQueue: AudioQueueRef, description: AudioStreamBasicDescription, seconds: Float64, outBufferSize: UnsafeMutablePointer<UInt32>) {
+    let maxBufferSize = 0x50000
+
+    var maxPacketSize = description.mBytesPerPacket
+    if maxPacketSize == 0 {
+      var maxVBRPacketSize = UInt32(MemoryLayout<UInt32>.size)
+      AudioQueueGetProperty(
+        audioQueue,
+        kAudioQueueProperty_MaximumOutputPacketSize,
+        &maxPacketSize,
+        &maxVBRPacketSize
+      )
+    }
+
+    let numBytesForTime = Double(description.mSampleRate) * Double(maxPacketSize) * Double(seconds)
+    outBufferSize.pointee = UInt32(numBytesForTime < Double(maxBufferSize) ? UInt32(numBytesForTime) : UInt32(maxBufferSize))
   }
 }
